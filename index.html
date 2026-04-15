@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus Trainer MVP</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <p class="eyebrow">Focus Trainer</p>
+        <h1>5 分钟验证专注训练是否有人愿意反复使用</h1>
+        <p class="subtitle">打开即用，两个训练模式，结束后立刻看到命中、误触和反应时间。</p>
+      </div>
+
+      <section class="panel">
+        <h2>训练模式</h2>
+        <div class="mode-list" id="mode-list"></div>
+      </section>
+
+      <section class="panel compact">
+        <h2>操作</h2>
+        <div class="control-grid">
+          <button id="start-button" class="primary-button">开始训练</button>
+          <button id="stop-button" class="secondary-button" disabled>结束训练</button>
+        </div>
+        <p class="hint" id="mode-hint"></p>
+      </section>
+
+      <section class="panel stats-panel">
+        <div class="stats-header">
+          <h2>实时反馈</h2>
+          <span id="session-state" class="status-pill idle">未开始</span>
+        </div>
+        <div class="stats-grid">
+          <article class="metric-card">
+            <span>命中率</span>
+            <strong id="hit-rate">0%</strong>
+          </article>
+          <article class="metric-card">
+            <span>漏判率</span>
+            <strong id="miss-rate">0%</strong>
+          </article>
+          <article class="metric-card">
+            <span>误触率</span>
+            <strong id="false-rate">0%</strong>
+          </article>
+          <article class="metric-card">
+            <span>平均反应</span>
+            <strong id="avg-reaction">0 ms</strong>
+          </article>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main-stage">
+      <section class="stage-frame">
+        <div class="stage-topbar">
+          <div>
+            <p class="eyebrow">训练舞台</p>
+            <h2 id="stage-title">目标识别训练</h2>
+          </div>
+          <div class="stage-meta">
+            <span id="timer-label">00:45</span>
+            <span id="streak-label">轮次 0</span>
+          </div>
+        </div>
+
+        <div id="stage" class="stage mode-reaction">
+          <div class="stage-overlay" id="stage-overlay">
+            <p class="overlay-title">准备开始</p>
+            <p class="overlay-copy">选择模式后点击“开始训练”，然后按空格或点击舞台进行反应。</p>
+          </div>
+          <div id="focus-cross" class="focus-cross hidden">+</div>
+          <div id="stimulus" class="stimulus">+</div>
+          <div id="focus-target" class="focus-target hidden"></div>
+          <div id="distractor-layer" class="distractor-layer hidden"></div>
+        </div>
+
+        <div class="response-bar">
+          <div>
+            <span class="bar-label">最近一次结果</span>
+            <strong id="response-label">等待开始</strong>
+          </div>
+          <div>
+            <span class="bar-label">目标规则</span>
+            <strong id="target-rule">看到 ★ 时反应</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-strip">
+        <article class="info-card">
+          <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=900&q=80" alt="A person focusing on a laptop screen">
+          <div>
+            <h3>Go / No-Go</h3>
+            <p>中央随机出现符号，只在目标出现时点击或按空格。</p>
+          </div>
+        </article>
+        <article class="info-card">
+          <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80" alt="Abstract colorful city lights as visual distractions">
+          <div>
+            <h3>中央凝视抗干扰</h3>
+            <p>盯住中心，忽略外围干扰，只在中心点变化时做出反应。</p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="core/config.js"></script>
+  <script src="core/stats.js"></script>
+  <script src="core/engine.js"></script>
+  <script src="modes/reaction.js"></script>
+  <script src="modes/focus.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
