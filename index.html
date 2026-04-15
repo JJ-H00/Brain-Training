@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Focus Trainer MVP</title>
+  <title>前额叶训练</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,22 +11,19 @@
     <aside class="sidebar">
       <div class="brand">
         <p class="eyebrow">Focus Trainer</p>
-        <h1>5 分钟验证专注训练是否有人愿意反复使用</h1>
-        <p class="subtitle">打开即用，两个训练模式，结束后立刻看到命中、误触和反应时间。</p>
+        <h1>前额叶训练</h1>
+        <p class="subtitle">通过目标识别、抗干扰与舒尔特方格训练，提升注意控制、反应抑制、视觉搜索与持续专注能力。</p>
       </div>
 
       <section class="panel">
         <h2>训练模式</h2>
         <div class="mode-list" id="mode-list"></div>
+        <p class="hint" id="mode-hint"></p>
       </section>
 
-      <section class="panel compact">
-        <h2>操作</h2>
-        <div class="control-grid">
-          <button id="start-button" class="primary-button">开始训练</button>
-          <button id="stop-button" class="secondary-button" disabled>结束训练</button>
-        </div>
-        <p class="hint" id="mode-hint"></p>
+      <section class="panel compact" id="difficulty-panel">
+        <h2>当前难度</h2>
+        <div class="difficulty-list" id="difficulty-list"></div>
       </section>
 
       <section class="panel stats-panel">
@@ -62,21 +59,29 @@
             <p class="eyebrow">训练舞台</p>
             <h2 id="stage-title">目标识别训练</h2>
           </div>
-          <div class="stage-meta">
-            <span id="timer-label">00:45</span>
-            <span id="streak-label">轮次 0</span>
+          <div class="stage-topbar-actions">
+            <div class="stage-meta">
+              <span id="timer-label">00:45</span>
+              <span id="streak-label">轮次 0</span>
+            </div>
+            <button id="stop-button" class="secondary-button stop-button" disabled>结束训练</button>
           </div>
         </div>
 
+        <div id="stage-feedback" class="stage-feedback is-hidden"></div>
+
         <div id="stage" class="stage mode-reaction">
           <div class="stage-overlay" id="stage-overlay">
-            <p class="overlay-title">准备开始</p>
-            <p class="overlay-copy">选择模式后点击“开始训练”，然后按空格或点击舞台进行反应。</p>
+            <div class="overlay-content">
+              <p class="overlay-title">准备开始</p>
+              <p class="overlay-copy">选择模式后点击“开始训练”，按照当前设备提示完成点击或按键操作。</p>
+              <button id="overlay-start-button" class="primary-button overlay-button">开始训练</button>
+            </div>
           </div>
-          <div id="focus-cross" class="focus-cross hidden">+</div>
-          <div id="stimulus" class="stimulus">+</div>
+          <div id="stimulus" class="stimulus"></div>
           <div id="focus-target" class="focus-target hidden"></div>
           <div id="distractor-layer" class="distractor-layer hidden"></div>
+          <div id="schulte-board" class="schulte-board hidden"></div>
         </div>
 
         <div class="response-bar">
@@ -86,7 +91,7 @@
           </div>
           <div>
             <span class="bar-label">目标规则</span>
-            <strong id="target-rule">看到 ★ 时反应</strong>
+            <strong id="target-rule">看到 ★ 时点击屏幕</strong>
           </div>
         </div>
       </section>
@@ -96,14 +101,14 @@
           <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=900&q=80" alt="A person focusing on a laptop screen">
           <div>
             <h3>Go / No-Go</h3>
-            <p>中央随机出现符号，只在目标出现时点击或按空格。</p>
+            <p>符号持续切换，训练选择性注意和反应控制，只在目标出现时立即操作。</p>
           </div>
         </article>
         <article class="info-card">
           <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80" alt="Abstract colorful city lights as visual distractions">
           <div>
             <h3>中央凝视抗干扰</h3>
-            <p>盯住中心，忽略外围干扰，只在中心点变化时做出反应。</p>
+            <p>训练持续专注与抗干扰能力，忽略外围文字、符号和 meme 图，只处理中心变化。</p>
           </div>
         </article>
       </section>
@@ -115,6 +120,7 @@
   <script src="core/engine.js"></script>
   <script src="modes/reaction.js"></script>
   <script src="modes/focus.js"></script>
+  <script src="modes/schulte.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

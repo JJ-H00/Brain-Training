@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   function createStatsTracker() {
     var state = {
       rounds: 0,
@@ -28,15 +28,15 @@
       registerHit: function registerHit(reactionTime) {
         state.hits += 1;
         state.reactionTimes.push(reactionTime);
-        state.lastOutcome = "命中 " + reactionTime + " ms";
+        state.lastOutcome = "正确 " + reactionTime + " ms";
       },
       registerMiss: function registerMiss() {
         state.misses += 1;
-        state.lastOutcome = "漏判";
+        state.lastOutcome = "错过目标";
       },
       registerFalseAlarm: function registerFalseAlarm() {
         state.falseAlarms += 1;
-        state.lastOutcome = "误触";
+        state.lastOutcome = "错误点击";
       },
       getSnapshot: function getSnapshot() {
         var avgReaction = 0;

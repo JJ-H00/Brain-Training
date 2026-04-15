@@ -1,10 +1,21 @@
-(function () {
+﻿(function () {
   function randomBetween(min, max) {
     return Math.round(min + Math.random() * (max - min));
   }
 
-  function randomItem(items) {
-    return items[Math.floor(Math.random() * items.length)];
+  function randomItem(items, previous) {
+    if (!items.length) {
+      return null;
+    }
+    if (items.length === 1) {
+      return items[0];
+    }
+
+    var candidate = items[Math.floor(Math.random() * items.length)];
+    while (candidate === previous) {
+      candidate = items[Math.floor(Math.random() * items.length)];
+    }
+    return candidate;
   }
 
   function StimulusEngine(options) {
@@ -12,6 +23,7 @@
     this.stats = options.stats;
     this.onStimulus = options.onStimulus;
     this.onStats = options.onStats;
+    this.onFeedback = options.onFeedback;
     this.onSessionState = options.onSessionState;
     this.onTimer = options.onTimer;
     this.onRound = options.onRound;
@@ -19,20 +31,21 @@
     this.running = false;
     this.currentTrial = null;
     this.timeoutId = null;
-    this.responseTimerId = null;
-    this.sessionTimerId = null;
     this.timerTickId = null;
     this.endsAt = 0;
+    this.previousStimulus = null;
   }
 
   StimulusEngine.prototype.start = function start() {
     this.stopTimers();
     this.running = true;
+    this.currentTrial = null;
+    this.previousStimulus = null;
     this.endsAt = Date.now() + window.FocusTrainerConfig.sessionDurationMs;
     this.onSessionState("running");
     this.onTimer(window.FocusTrainerConfig.sessionDurationMs);
     this.scheduleTimerTick();
-    this.scheduleNextTrial(300);
+    this.presentTrial();
   };
 
   StimulusEngine.prototype.stop = function stop(reason) {
@@ -40,11 +53,7 @@
       return;
     }
 
-    if (this.currentTrial && this.currentTrial.isTarget && !this.currentTrial.responded) {
-      this.stats.registerMiss();
-      this.onStats(this.stats.getSnapshot());
-    }
-
+    this.finalizeCurrentTrial(reason !== "switching" && reason !== "restarting");
     this.running = false;
     this.currentTrial = null;
     this.stopTimers();
@@ -55,8 +64,6 @@
 
   StimulusEngine.prototype.stopTimers = function stopTimers() {
     clearTimeout(this.timeoutId);
-    clearTimeout(this.responseTimerId);
-    clearTimeout(this.sessionTimerId);
     clearInterval(this.timerTickId);
   };
 
@@ -82,54 +89,56 @@
     }, delay == null ? randomBetween(this.mode.intervalMin, this.mode.intervalMax) : delay);
   };
 
+  StimulusEngine.prototype.finalizeCurrentTrial = function finalizeCurrentTrial(shouldCountMiss) {
+    if (!this.currentTrial) {
+      return;
+    }
+
+    if (shouldCountMiss && this.currentTrial.isTarget && !this.currentTrial.responded) {
+      this.stats.registerMiss();
+      this.onStats(this.stats.getSnapshot());
+      this.onFeedback({
+        type: "miss",
+        label: "错过目标"
+      });
+    }
+  };
+
+  StimulusEngine.prototype.pickStimulus = function pickStimulus(isTarget) {
+    var pool = isTarget ? this.mode.targetStimuli : this.mode.distractorStimuli;
+    var stimulus = randomItem(pool, this.previousStimulus);
+    this.previousStimulus = stimulus;
+    return stimulus;
+  };
+
   StimulusEngine.prototype.presentTrial = function presentTrial() {
     if (!this.running) {
       return;
     }
 
+    this.finalizeCurrentTrial(true);
+
     var isTarget = Math.random() < this.mode.targetProbability;
-    var stimulus = isTarget ? randomItem(this.mode.targetStimuli) : randomItem(this.mode.distractorStimuli);
+    var stimulus = this.pickStimulus(isTarget);
+    var duration = randomBetween(this.mode.intervalMin, this.mode.intervalMax);
+
     this.currentTrial = {
       stimulus: stimulus,
       isTarget: isTarget,
       shownAt: Date.now(),
-      responded: false
+      responded: false,
+      duration: duration
     };
 
     this.stats.registerStimulus(isTarget);
     this.onRound(this.stats.state.rounds);
     this.onStimulus(this.currentTrial);
     this.onStats(this.stats.getSnapshot());
-
-    var self = this;
-    this.responseTimerId = setTimeout(function () {
-      if (!self.currentTrial || self.currentTrial.responded) {
-        return;
-      }
-
-      if (self.currentTrial.isTarget) {
-        self.stats.registerMiss();
-        self.onStats(self.stats.getSnapshot());
-      }
-
-      self.currentTrial = null;
-      self.onStimulus(null);
-      self.scheduleNextTrial();
-    }, this.mode.responseWindow);
+    this.scheduleNextTrial(duration);
   };
 
   StimulusEngine.prototype.registerResponse = function registerResponse() {
-    if (!this.running) {
-      return;
-    }
-
-    if (!this.currentTrial) {
-      this.stats.registerFalseAlarm();
-      this.onStats(this.stats.getSnapshot());
-      return;
-    }
-
-    if (this.currentTrial.responded) {
+    if (!this.running || !this.currentTrial || this.currentTrial.responded) {
       return;
     }
 
@@ -138,15 +147,13 @@
 
     if (this.currentTrial.isTarget) {
       this.stats.registerHit(reactionTime);
+      this.onFeedback({ type: "success", label: "正确", reactionTime: reactionTime });
     } else {
       this.stats.registerFalseAlarm();
+      this.onFeedback({ type: "error", label: "错误" });
     }
 
     this.onStats(this.stats.getSnapshot());
-    this.currentTrial = null;
-    this.onStimulus(null);
-    clearTimeout(this.responseTimerId);
-    this.scheduleNextTrial(280);
   };
 
   window.FocusTrainerEngine = {
